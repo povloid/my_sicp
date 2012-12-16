@@ -1,0 +1,39 @@
+(define (m a b)
+  (if (= b 0)
+      0
+      (+ a (m a (- b 1)))))
+
+(define (double x)
+  (* x 2))
+
+
+(define (halve x)
+  (if (even? x)
+      (/ x 2) 
+      0))
+
+
+(define (ml a b)
+  (ml-iter 0 a b))
+
+(define (ml-iter r a b)
+  (display 1)
+  (if (or (= b 0) (= a 0))
+      r
+      (if (even? b)
+          (ml-iter (+ r b) a (halve b))
+          (ml-iter (+ r a) a (- b 1)))))
+     
+
+(ml 3 5)
+
+; 0 +  2 * 40 = 80
+; 40 + 2 * 20 = 80
+; 60 + 2 * 10 = 80
+; 70 + 2 * 5 = 80
+; 72 + 2 * 4 = 80
+; 74 + 2 * 2 = 80
+; 76 + 2 * 2 = 
+
+
+     

@@ -1,0 +1,33 @@
+; 1.11
+
+; Рекурсивное определение
+(define (fr n)
+  (if
+   (< n 3) n
+    (+ (fr (- n 1)) (fr (- n 2)) (fr (- n 3)))
+    )
+  )
+
+(fr 5)
+
+; Итеративный процесс
+(define (fi n result) 
+  (if (< n 3) 
+      (+ result n)
+      (+ (fi (- n 1) result) (fi (- n 2) result) (fi (- n 3) result))
+      )
+  )
+
+
+(fi 5 0)
+
+
+
+
+
+
+
+
+
+
+

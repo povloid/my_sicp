@@ -50,14 +50,66 @@
          (qsum c (max a b)))
         ((and (> b a) (> b c))
          (qsum b (max a c)))
-        ((and (> a b) (> a c))
+        (else
          (qsum a (max b c))))
   )  
   
-(sumqfrom2max 1 4 3)
+(sumqfrom2max 8 3 4)
 
 
 
+
+(define (p) (p))
+(define (test x y)
+(if (= x 0)
+0
+y))
+
+; интерпритатор апликативный
+;(test 0 (p)) 
+
+
+; Квадратные корни
+
+(define (average x y)
+  (/ (+ x y) 2))
+
+(define (improve guess x)
+  (average guess (/ x guess)))
+
+(define (good-enough? oldguess guess x)
+  (> (abs (- (* guess guess) x)) oldguess))
+
+(define (sqrt-iter oldguess guess x)
+  (if (good-enough? oldguess guess x)
+      oldguess
+      (sqrt-iter guess (improve guess x)
+                 x)))
+
+(define (sqrt1 x)
+  (sqrt-iter 1.0 1.0 x))
+
+
+(sqrt1 25)
+
+; New if
+
+(define (new-if predicate then-clause else-clause)
+  (cond (predicate then-clause)
+        (else else-clause)))
+
+(define (sqrt-iter2 guess x)
+  (new-if (good-enough? guess x)
+          guess
+          (sqrt-iter2 (improve guess x)
+                     x)))
+
+
+(define (sqrt2 x)
+  (sqrt-iter2 1.0 x))
+
+
+;;(sqrt2 9)
 
 
 
