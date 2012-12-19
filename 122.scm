@@ -49,8 +49,7 @@
          (remainder (* base (expmod base (- exp 1) m))
                     m))))
 
-
-
+; Тест ферма
 (define (fermat-test n)
   (define (try-it a)
     (= (expmod a n n) a))
