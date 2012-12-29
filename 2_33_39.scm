@@ -131,22 +131,60 @@
 
 (transpose m2)
 
+(car (list 5 6))
+(car (cdr m2))
+
 (define (matrix-*-matrix m n)
-  (let ((cols (transpose n)))
+  ;(newline)(display "|")(display m)(display "-")(display n)(display "->")
+  (let ((cols (transpose n))) ;((1 3) 
+    ;                           (2 4))
+    ;(display cols)(display " -> ")
     (map 
-     (lambda (x) (cons (   ))
-         m)))
+     (lambda (x) ;(5 6)
+       (accumulate-n + 0 (matrix-*-vector cols x)))
+     
+     m))) ;((5 6) (7 8))
+
 
 
 (matrix-*-matrix m2 m3)
 
 
 
+; Упражненение 2.38
+
+(define (fold-left op initial sequence)
+  (define (iter result rest)
+    (if (null? rest)
+        result
+        (iter (op result (car rest))
+              (cdr rest))))
+  (iter initial sequence))
+
+(define fold-right accumulate)
+
+; 1/6 ошибся - будет 1*1/2
+(fold-right / 1 (list 1 2 3))
+; 1/6
+(fold-left / 1 (list 1 2 3))
 
 
+; (1 (2 (3)))
+(fold-right list (list) (list 1 2 3))
 
+; (list () 1) (2 3) .....-> ((() 1) 2) 3)
+(fold-left list (list) (list 1 2 3))
 
+; не джолжно быть головы и хвоста. 
 
+; Упражненение 2.39
 
+(define (reverse1 sequence)
+  (fold-right (lambda (x y) (append y (list x)) ) (list) sequence))
 
+(reverse1 (list 1 2 3 4 5 6 7))
 
+(define (reverse2 sequence)
+  (fold-left (lambda (result carx) (cons carx result) ) (list) sequence))
+
+(reverse2 (list 1 2 3 4 5 6 7))
