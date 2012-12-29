@@ -71,6 +71,74 @@
 (count-leaves2 (list (list 1 2 (list 1 2)) 1 2 3 4 5 6 7 (list 1 2)))
 
 
+; Упражненение 2.36
+
+(define l1 (list (list 1 2 3) (list 4 5 6) (list 7 8 9) (list 10 11 12)))
+
+
+(map (lambda (x) (car x)) l1)
+
+(map (lambda (x) (cdr x)) l1)
+
+
+(define (accumulate-n op init seqs)
+  (if (null? (car seqs))
+      (list)
+      (cons (accumulate op init (map (lambda (x) (car x)) seqs))
+            (accumulate-n op init (map (lambda (x) (cdr x)) seqs)))))
+
+(accumulate-n + 0 l1)
+
+; Упражненение 2.37
+
+(define v1 (list 2 2 2 2))
+(define v2 (list 4 4 4 4))
+
+(define m1 (list (list 1 2 3 4) (list 4 5 6 6) (list 6 7 8 9)))
+
+
+(define (dot-product v w)
+  (accumulate + 0 (map * v w)))
+
+(map * v1 v2)
+(dot-product v1 v2)
+
+(define (matrix-*-vector m v)
+  (map (lambda (x) (map * v x))
+       m))
+
+(display "-------------------------------------------")
+(newline)
+(display v1)
+(NEWLINE)
+(display m1)
+(NEWLINE)
+(matrix-*-vector m1 v1)
+
+(define (transpose mat)
+  (accumulate-n cons
+                (list)
+                mat))
+
+(display m1)
+
+(newline)
+(transpose m1)
+
+
+(define m2 (list (list 1 2) (list 3 4)))
+(define m3 (list (list 5 6) (list 7 8)))
+
+(transpose m2)
+
+(define (matrix-*-matrix m n)
+  (let ((cols (transpose n)))
+    (map 
+     (lambda (x) (cons (   ))
+         m)))
+
+
+(matrix-*-matrix m2 m3)
 
 
 
