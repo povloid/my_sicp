@@ -34,31 +34,35 @@
                    s)))
     (permutations-t seq psize)))
 
-(define empty-board (make-perebor 8 2))
+(define empty-board (list (list )))
 (display empty-board)
+(newline)
 
 
 ; (1 2 3 4 ... n) k-вертикаль ((1 1) (1 2) (1 3) ... (n n))
 (define (adjoin-position new-row k rest-of-queens)
-   (map (lambda (y) 
-    
-   rest-of-queens)
+  (if (null? rest-of-queens)  
+   (list (list k new-row))
+   (append (list (list k new-row)) rest-of-queens)
+  ))
    
+(adjoin-position 1 1 (list))
    
 (define (queens board-size)
   (define (queen-cols k) ;Начинем процедуру
     (if (= k 0) ; Если k кончилось то возвращаем 
-        ;(list empty-board) ; Пустое множеств позиций
-        (make-perebor board-size 2) ; генерируем 64 ячейки если передаем к примеру board-size = 8
-        (filter 
-         (lambda (positions) (safe? k positions)) ; выфельтровываем те что можно сохранить
+        (list empty-board) ; Пустое множеств позиций
+        ;(filter 
+        ; (lambda (positions) (safe? k positions)) ; выфельтровываем те что можно сохранить
          (flatmap 
           (lambda (rest-of-queens) ; есть способ размещения k-1 ферзя на первых k-1 вертикалях - обрабатывает список ((1 1) (1 2) (1 3) ... (n n))
             (map (lambda (new-row) ; обрабатывает список  (1 2 3 4 ... n) 
                    (adjoin-position new-row k rest-of-queens)) ; добавляет нового ферзя на определенных горизонтали и вертикали к заданному множеству позиций
                  (enumerate-interval 1 board-size))) ; создаем числовой список (1 2 3 4 ... n)
-          (queen-cols (- k 1)))))) ; рекурсивно вызываем основную функцию
+          (queen-cols (- k 1)))
+         ;)
+        )) ; рекурсивно вызываем основную функцию
   (queen-cols board-size))
 
 
-;;(queens 8)
+(queens 3)
