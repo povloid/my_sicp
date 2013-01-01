@@ -34,35 +34,63 @@
                    s)))
     (permutations-t seq psize)))
 
-(define empty-board (list (list )))
+(define empty-board (list (list (list ))))
 (display empty-board)
 (newline)
 
-
 ; (1 2 3 4 ... n) k-вертикаль ((1 1) (1 2) (1 3) ... (n n))
 (define (adjoin-position new-row k rest-of-queens)
-  (if (null? rest-of-queens)  
-   (list (list k new-row))
-   (append (list (list k new-row)) rest-of-queens)
-  ))
-   
-(adjoin-position 1 1 (list))
-   
+  ;(display rest-of-queens)(newline)
+  (if (null? (car rest-of-queens))
+      (list (list k new-row))
+      (append (list (list k new-row)) rest-of-queens)))
+
+;(adjoin-position 1 1 empty-board)
+
+
+
+(accumulate * 1 (list 1 2))
+
+(equal? (list 1 2) (list 1 2))
+
+(define (safe? k positions)
+  (define (h-atack k-point k) ; (3 1) 3
+    (if (= k 0) (list)
+        (append (list k-point) (h-atack (list (- k 1) (car (cdr k-point))) (- k 1)))))  
+  (define (d-down-atack k-point k)
+    (if (= k 0) (list)
+        (append (list k-point) (d-down-atack (list (- k 1) (+ (car (cdr k-point)) 1)) (- k 1)))))    
+  (define (d-up-atack k-point k)
+    (if (= k 0) (list)
+        (append (list k-point) (d-up-atack (list (- k 1) (- (car (cdr k-point)) 1)) (- k 1)))))      
+  (let ((have (accumulate + 0 (map (lambda (x) 
+                  (accumulate + 0 
+                              (map (lambda (y) (if (equal? x y) 1 0))
+                  (append (cdr (h-atack (car positions) k)) (cdr (d-down-atack (car positions) k)) (cdr (d-up-atack (car positions) k))))
+                              )
+                     )
+                positions))))  
+  (= have 0)))
+
+
+
+
+(newline)
 (define (queens board-size)
   (define (queen-cols k) ;Начинем процедуру
     (if (= k 0) ; Если k кончилось то возвращаем 
-        (list empty-board) ; Пустое множеств позиций
-        ;(filter 
-        ; (lambda (positions) (safe? k positions)) ; выфельтровываем те что можно сохранить
+        empty-board ; Пустое множеств позиций
+        (filter 
+         (lambda (positions) (safe? k positions)) ; выфельтровываем те что можно сохранить
          (flatmap 
           (lambda (rest-of-queens) ; есть способ размещения k-1 ферзя на первых k-1 вертикалях - обрабатывает список ((1 1) (1 2) (1 3) ... (n n))
             (map (lambda (new-row) ; обрабатывает список  (1 2 3 4 ... n) 
                    (adjoin-position new-row k rest-of-queens)) ; добавляет нового ферзя на определенных горизонтали и вертикали к заданному множеству позиций
                  (enumerate-interval 1 board-size))) ; создаем числовой список (1 2 3 4 ... n)
           (queen-cols (- k 1)))
-         ;)
+         )
         )) ; рекурсивно вызываем основную функцию
   (queen-cols board-size))
 
 
-(queens 3)
+(queens 8)
