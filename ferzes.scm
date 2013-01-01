@@ -47,33 +47,21 @@
 
 ;(adjoin-position 1 1 empty-board)
 
+;(accumulate * 1 (list 1 2))
 
+;(equal? (list 1 2) (list 1 2))
 
-(accumulate * 1 (list 1 2))
-
-(equal? (list 1 2) (list 1 2))
-
-(define (safe? k positions)
-  (define (h-atack k-point k) ; (3 1) 3
+(define (safe? k positions)  
+  (define (list-atack k-point k f)
     (if (= k 0) (list)
-        (append (list k-point) (h-atack (list (- k 1) (car (cdr k-point))) (- k 1)))))  
-  (define (d-down-atack k-point k)
-    (if (= k 0) (list)
-        (append (list k-point) (d-down-atack (list (- k 1) (+ (car (cdr k-point)) 1)) (- k 1)))))    
-  (define (d-up-atack k-point k)
-    (if (= k 0) (list)
-        (append (list k-point) (d-up-atack (list (- k 1) (- (car (cdr k-point)) 1)) (- k 1)))))      
+        (append (list k-point) (list-atack (list (- k 1) (f (car (cdr k-point)))) (- k 1) f))))    
   (let ((have (accumulate + 0 (map (lambda (x) 
-                  (accumulate + 0 
-                              (map (lambda (y) (if (equal? x y) 1 0))
-                  (append (cdr (h-atack (car positions) k)) (cdr (d-down-atack (car positions) k)) (cdr (d-up-atack (car positions) k))))
-                              )
-                     )
-                positions))))  
-  (= have 0)))
-
-
-
+                                     (accumulate + 0  (map (lambda (y) (if (equal? x y) 1 0))
+                                                           (append (cdr (list-atack (car positions) k (lambda (x) x))) 
+                                                                   (cdr (list-atack (car positions) k (lambda (x) (+ x 1)))) 
+                                                                   (cdr (list-atack (car positions) k (lambda (x) (- x 1))))))))
+                                   positions))))  
+    (= have 0)))
 
 (newline)
 (define (queens board-size)
@@ -83,7 +71,7 @@
         (filter 
          (lambda (positions) (safe? k positions)) ; выфельтровываем те что можно сохранить
          (flatmap 
-          (lambda (rest-of-queens) ; есть способ размещения k-1 ферзя на первых k-1 вертикалях - обрабатывает список ((1 1) (1 2) (1 3) ... (n n))
+          (lambda (rest-of-queens) ; есть способ размещения k-1 ферзя на первых k-1 вертикалях - обрабатывает список (((1 1) (1 2)) ((1 3) ... (n n)))
             (map (lambda (new-row) ; обрабатывает список  (1 2 3 4 ... n) 
                    (adjoin-position new-row k rest-of-queens)) ; добавляет нового ферзя на определенных горизонтали и вертикали к заданному множеству позиций
                  (enumerate-interval 1 board-size))) ; создаем числовой список (1 2 3 4 ... n)
