@@ -4,7 +4,7 @@
 
 
 
-(define (с x set)
+(define (element-of-set? x set)
   (cond ((null? set) #f)
         ((= x (car set)) #t)
         ((< x (car set)) #f)
@@ -61,6 +61,12 @@
 ; номит нам в среднем половину числа шагов по сравнению с предыдущей реализацией.
 
 
+(define (union-set set1 set2)
+  (if (null? set1) set2
+      (union-set (cdr set1) (adjoin-set (car set1) set2))))
+
+
+(union-set set1 set2)
 
 
 
