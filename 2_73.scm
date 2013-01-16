@@ -44,8 +44,6 @@
 (get 1 1)
 (get 2 2)
 
-
-
 ; Итак первый вариант функции дифферинцирования
 
 ; Переменные — это символы. Они распознаются элементарным предикатом symbol?
@@ -144,10 +142,86 @@
 (define (deriv exp var)
   (cond ((number? exp) 0)
         ((variable? exp) (if (same-variable? exp var) 1 0))
-        (else ((get 'deriv (operator exp)) (operands exp)
+        (else ((get 'deriv (operator exp)) exp                                        
                                            var))))
 (define (operator exp) (car exp))
 (define (operands exp) (cdr exp))
+
+; a) Потому что операции предикаты number? и variable?? они работают с унар
+; ными операциями.
+
+
+
+; б) 
+(put 'deriv '+
+     (lambda (exp var)
+       (make-sum (deriv (addend exp) var)
+                 (deriv (augend exp) var))))
+
+
+(put 'deriv '* 
+     (lambda (exp var)
+       (make-sum
+        (make-product (multiplier exp)
+                      (deriv (multiplicand exp) var))
+        (make-product (deriv (multiplier exp) var)
+                      (multiplicand exp)))))
+
+
+(get 'deriv '+)
+(deriv '(* 2 x) 'x)
+(deriv '(+ (* 2 x) (+ x 1)) 'x)
+
+
+; в)
+; Возведение в степень ---------------------------------------------------------------
+(define (exponentiation? x)
+  (and (pair? x) (eq? (car x) '**)))
+
+; Основание 
+(define (base p)
+  (cadr p))
+
+; Степень
+(define (exponent p) 
+  (caddr p))
+
+(define (make-exponentiation m1 m2)
+  (cond ((=number? m2 0) 1)
+        ((=number? m2 1) m1)
+        ((number? m2) (make-product m2 (list '** m1 (- m2 1))))
+        (else (make-product m2 (list '** m1 (list '- m2 1))))))
+
+
+(put 'deriv '** 
+     (lambda (exp var) 
+       (make-exponentiation (base exp)
+                            (exponent exp))))
+
+
+(newline)
+(deriv '(** x 10) 'x)
+(deriv '(+ (** x y) (* x 5)) 'x)
+
+
+;г. В этой простой алгебраической системе тип выражения — это алгебраическая операция верх-
+;него уровня. Допустим, однако, что мы индексируем процедуры противоположным образом, так
+;что строка диспетчеризации в deriv выглядит как
+;((get (operator exp) ’deriv) (operands exp) var)
+;Какие изменения потребуются в системе дифференцирования?
+
+; Надо поменять местами операнды 'deriv (operator exp) 
+; (else ((get (operator exp) 'deriv) exp                                        
+;                                           var))))
+
+
+
+
+
+
+
+
+
 
 
 
