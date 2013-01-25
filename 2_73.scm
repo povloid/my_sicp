@@ -208,7 +208,6 @@
 ;что строка диспетчеризации в deriv выглядит как
 ;((get (operator exp) ’deriv) (operands exp) var)
 ;Какие изменения потребуются в системе дифференцирования?
-
 ; Надо поменять местами операнды 'deriv (operator exp) 
 ; (else ((get (operator exp) 'deriv) exp                                        
 ;                                           var))))
