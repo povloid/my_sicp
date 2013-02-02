@@ -61,12 +61,20 @@
 (define (mul x y) (apply-generic 'mul x y))
 (define (div x y) (apply-generic 'div x y))
 
+(define (equ? x y) (apply-generic 'equ? x y))
+
+
+(define (=zero? x) 
+  ;(display (list (car x)))
+  ((get '=zero? (list (car x))) (cdr x)))
+
 
 
 ; Пакет установки пакета для работы с обычными числами
 (define (install-scheme-number-package)
   (define (tag x)
     (attach-tag 'scheme-number x))
+  
   (put 'add '(scheme-number scheme-number)
        (lambda (x y) (tag (+ x y))))
   (put 'sub '(scheme-number scheme-number)
@@ -75,9 +83,19 @@
        (lambda (x y) (tag (* x y))))
   (put 'div '(scheme-number scheme-number)
        (lambda (x y) (tag (/ x y))))
+  
+  ; Упражнение 2.79
+  (put 'equ? '(scheme-number scheme-number)
+       (lambda (x y) (= x y)))
+  
+  
+  ; Упражнение 2.80
+  (put '=zero? '(scheme-number)
+       (lambda (x) (= x 0)))
+  
   (put 'make 'scheme-number
        (lambda (x) (tag x)))
-  'done)
+  'done2)
 
 (install-scheme-number-package)
 
@@ -89,7 +107,16 @@
  (make-scheme-number 4)
  (make-scheme-number 5))
 
+(equ?
+ (make-scheme-number 4)
+ (make-scheme-number 5))
 
+(equ?
+ (make-scheme-number 5)
+ (make-scheme-number 5))
+
+(=zero? (make-scheme-number 5))
+(=zero? (make-scheme-number 0))
 
 ;  пакет, который реализует арифметику рациональных чисел. 
 (define (install-rational-package)
@@ -113,6 +140,17 @@
   (define (div-rat x y)
     (make-rat (* (numer x) (denom y))
               (* (denom x) (numer y))))
+  
+  ; Упражнение 2.79
+  (define (equ?-rat x y)
+    (and (= (denom x) (denom y))
+         (= (numer x) (numer y))))
+  
+  ; Упражнение 2.80
+  (define (=zero?-rat x)
+    (= (numer x) 0))
+  
+  
   ;; интерфейс к остальной системе
   (define (tag x) (attach-tag 'rational x))
   (put 'add '(rational rational)
@@ -123,6 +161,17 @@
        (lambda (x y) (tag (mul-rat x y))))
   (put 'div '(rational rational)
        (lambda (x y) (tag (div-rat x y))))
+  
+  ; Упражнение 2.79
+  (put 'equ? '(rational rational)
+       (lambda (x y) (equ?-rat x y)))
+  
+  
+  ; Упражнение 2.80
+  (put '=zero? '(rational)
+       (lambda (x) (=zero?-rat x)))
+  
+  
   (put 'make 'rational
        (lambda (n d) (tag (make-rat n d))))
   'done)
@@ -140,6 +189,17 @@
 (sub (make-rational 1 2)
      (make-rational 5 10))
 
+(equ? (make-rational 1 2)
+      (make-rational 5 10))
+
+(equ? (make-rational 5 10)
+      (make-rational 5 10))
+
+(equ? (make-rational 5 10)
+      (make-rational 5 11))
+
+(=zero? (make-rational 5 10))
+(=zero? (make-rational 0 10))
 
 ;; пакет и для комплексных чисел
 
@@ -207,8 +267,6 @@
   (define (magnitude z)  (cadr z))
   (define (angle z) (cddr z))
   
-  
-  
   (define (tag x)
     (attach-tag 'complex x))
   ;; интерфейс к остальной системе
@@ -235,6 +293,16 @@
     (make-from-mag-ang (/ (magnitude z1) (magnitude z2))
                        (- (angle z1) (angle z2))))
   
+  ; Упражнение 2.79
+  (define (equ?-complex z1 z2)
+    (and (= (magnitude z1) (magnitude z2))
+         (= (angle z1) (angle z2))))
+  
+  ; Упражнение 2.80
+  (define (=zero?-complex z1)
+    (and (= (magnitude z1) 0)
+         (= (angle z1) 0)))
+  
   (put 'add '(complex complex)
        (lambda (z1 z2) (tag (add-complex z1 z2))))
   (put 'sub '(complex complex)
@@ -243,6 +311,15 @@
        (lambda (z1 z2) (tag (mul-complex z1 z2))))
   (put 'div '(complex complex)
        (lambda (z1 z2) (tag (div-complex z1 z2))))
+  
+  ; Упражнение 2.79
+  (put 'equ? '(complex complex)
+       (lambda (z1 z2) (equ?-complex z1 z2)))
+  
+  
+  ; Упражнение 2.80
+  (put '=zero? '(complex)
+       (lambda (z1) (=zero?-complex z1)))
   
   (put 'make-from-real-imag 'complex
        (lambda (x y) (tag (make-from-real-imag x y))))
@@ -258,7 +335,7 @@
   
   
   
-  'done)
+  'done3)
 
 (install-complex-package)
 
@@ -270,8 +347,49 @@
   ((get 'make-from-mag-ang 'complex) r a))
 
 
-(add (make-complex-from-real-imag 2 1)
+(add (make-complex-from-real-imag 2 1) 
      (make-complex-from-real-imag 3 0.5))
+
+(add (make-complex-from-mag-ang 2 1)
+     (make-complex-from-mag-ang 3 0.5))
+
+
+(equ? (make-complex-from-mag-ang 2 1)
+      (make-complex-from-mag-ang 3 0.5))
+
+(equ? (make-complex-from-mag-ang 2 1)
+      (make-complex-from-mag-ang 2 1))
+
+(=zero? (make-complex-from-mag-ang 2 1))
+(=zero? (make-complex-from-mag-ang 0 0))
+
+;; Упражнение 2.77 (Както непонятно, сделал свой вызов) - посути должно производиться двойное диспетчирвание
+(define (magnitude2 z)
+  ((get 'magnitude (list (car z))) (cdr z))
+  )
+
+(magnitude2 (make-complex-from-mag-ang 2 1))
+
+
+; Упражнение 2.78
+
+(define (type-tag datum)
+  (cond ((pair? datum) (car datum))
+        ((number? datum) 'scheme-number)
+        (else (error "Некорректные помеченные данные -- TYPE-TAG" datum))))
+
+
+(define (attach-tag type-tag contents)
+  (if  (number? contents) contents
+       (cons type-tag contents)))
+
+(define (contents datum)
+  (cond ((pair? datum) (cdr datum))
+        ((number? datum) datum)
+        (else (error "Некорректные помеченные данные -- CONTENTS" datum))))
+
+
+
 
 
 
