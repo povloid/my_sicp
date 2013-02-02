@@ -203,10 +203,10 @@
   ;; Еще надо добавить селекторы
   (define (real-part z) (cadr z))
   (define (imag-part z) (cddr z))
-
+  
   (define (magnitude z)  (cadr z))
   (define (angle z) (cddr z))
-
+  
   
   
   (define (tag x)
@@ -272,6 +272,87 @@
 
 (add (make-complex-from-real-imag 2 1)
      (make-complex-from-real-imag 3 0.5))
+
+
+
+
+; ******************************************************************************
+; Приведение типов
+; Теперь специфика под задачу
+(define table-coercion (list '*table-coercion*))
+
+(define (get-coercion type-1 type-2)
+  (lookup type-1 type-2 table-coercion))
+
+(define (put-coercion type-1 type-2 element)
+  (insert! type-1 type-2 element table-coercion))
+
+
+(define (type-tag datum)
+  (cond ((pair? datum) (car datum))
+        ((number? datum) 'scheme-number)
+        (else (error "Bad tagged datum -- TYPE-TAG" datum))))
+
+
+(define (contents datum)
+  (cond ((pair? datum) (cdr datum))
+        ((number? datum) datum)
+        (else (error "Bad tagged datum -- CONTENTS" datum))))
+
+(define (scheme-number->complex n)
+  (make-complex-from-real-imag (contents n) 0))
+
+
+(put-coercion 'scheme-number 'complex scheme-number->complex)
+
+
+
+(define (apply-generic op . args)
+  (display "*->")
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags))
+                    (a1 (car args))
+                    (a2 (cadr args)))
+                (let ((t1->t2 (get-coercion type1 type2))
+                      (t2->t1 (get-coercion type2 type1)))
+                  (cond (t1->t2
+                         (apply-generic op (t1->t2 a1) a2))
+                        (t2->t1
+                         (apply-generic op a1 (t2->t1 a2)))
+                        (else
+                         (error "No method for these types"
+                                (list op type-tags))))))
+              (error "No method for these types"
+                     (list op type-tags)))))))
+
+
+
+
+(add
+ (make-scheme-number 4)
+ (make-scheme-number 5))
+
+
+(add
+ (make-complex-from-real-imag 2 1)
+ (make-scheme-number 5))
+
+
+; Упражнение 2.81
+
+
+(define (scheme-number->scheme-number n) n)
+(define (complex->complex z) z)
+(put-coercion 'scheme-number 'scheme-number
+              scheme-number->scheme-number)
+(put-coercion 'complex 'complex complex->complex)
+
+
 
 
 
