@@ -61,6 +61,8 @@
 (define (mul x y) (apply-generic 'mul x y))
 (define (div x y) (apply-generic 'div x y))
 
+(define (exp2 x y) (apply-generic 'exp x y))
+
 (define (equ? x y) (apply-generic 'equ? x y))
 
 
@@ -92,6 +94,14 @@
   ; Упражнение 2.80
   (put '=zero? '(scheme-number)
        (lambda (x) (= x 0)))
+  
+  
+  (define (exp x y) (apply-generic 'exp x y))
+  (put 'exp '(scheme-number scheme-number)
+       (lambda (x y) (tag (expt x y))))
+
+  
+  
   
   (put 'make 'scheme-number
        (lambda (x) (tag x)))
@@ -423,12 +433,25 @@
 
 (put-coercion 'scheme-number 'complex scheme-number->complex)
 
+;------------------------------------------------
+(define (scheme-number->scheme-number n) n)
+
+(define (complex->complex z) z)
+
+(put-coercion 'scheme-number 'scheme-number
+              scheme-number->scheme-number)
+(put-coercion 'complex 'complex complex->complex)
+;-------------------------------------------------
+
+
 
 
 (define (apply-generic op . args)
   (display "*->")
   (let ((type-tags (map type-tag args)))
+    (display type-tags)
     (let ((proc (get op type-tags)))
+      (display proc)
       (if proc
           (apply proc (map contents args))
           (if (= (length args) 2)
@@ -437,7 +460,7 @@
                     (a1 (car args))
                     (a2 (cadr args)))
                 (let ((t1->t2 (get-coercion type1 type2))
-                      (t2->t1 (get-coercion type2 type1)))
+                      (t2->t1 (get-coercion type2 type1)))                  
                   (cond (t1->t2
                          (apply-generic op (t1->t2 a1) a2))
                         (t2->t1
@@ -463,12 +486,35 @@
 
 ; Упражнение 2.81
 
+(newline)
+(add
+ (make-scheme-number 4)
+ (make-scheme-number 5))
 
-(define (scheme-number->scheme-number n) n)
-(define (complex->complex z) z)
-(put-coercion 'scheme-number 'scheme-number
-              scheme-number->scheme-number)
-(put-coercion 'complex 'complex complex->complex)
+(newline)
+(add
+ (make-complex-from-real-imag 2 1)
+ (make-complex-from-real-imag 2 1))
+
+
+(exp2
+ (make-scheme-number 4)
+ (make-scheme-number 5))
+
+
+;(exp2
+; (make-complex-from-real-imag 2 1)
+; (make-complex-from-real-imag 2 1))
+
+; a)
+; Работает если операции определены в таблице типов
+; если не определены то происходит зацикливание
+
+; б) Особого смысла в доработке нет
+
+
+
+
 
 
 
