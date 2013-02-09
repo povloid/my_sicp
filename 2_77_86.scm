@@ -541,10 +541,17 @@
   ;(display "*->")  
   ;(display args)
   
-  (define (apply-generic-old op x y) 
-    ((get op (list (car x) (car y))) 
-     (cdr x) (cdr y)))
+  ; Новая обобщенная процедура, принимает на вход список аргументов
+  (define (make-op op2 args)
+    (display "/>")  
+    (display args)
+    (let ((x (car args)) (y (cadr args)))
+      (let ((opp (get op2 (map type-tag (list x y))))) 
+        (if (null? (cddr args)) 
+            (opp (contents x) (contents y))
+            (make-op op2 (cons (opp (contents x) (contents y)) (cddr args)))))))               
   
+  ; Процедура проверяющая все ли типы в списке одинаковы
   (define (is-all-type-tags-eq? args2)
     (if (null? (cdr args2)) #t
         (let ((a (eq? (car args2) (cadr args2))))
@@ -559,8 +566,8 @@
     ;; в)
     (if (is-all-type-tags-eq? type-tags) 
         ;; Если все аргументы в одинаковы то ничего приводить ненадо
-        ((display ">>>") (display (map contents args))
-        (apply (get op type-tags) (map contents args)))
+        
+        (make-op op args)
         
         (apply (get op type-tags) (map contents args)))))
 
@@ -570,10 +577,10 @@
   (apply-generic 'add args))
 
 
-;(add
-; (make-complex-from-real-imag 2 1)
-; (make-complex-from-real-imag 2 1)
-; (make-complex-from-real-imag 2 1))
+(add
+ (make-complex-from-real-imag 2 1)
+ (make-complex-from-real-imag 2 1)
+ (make-complex-from-real-imag 2 1))
 
 (add
  
