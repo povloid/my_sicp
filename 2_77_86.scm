@@ -1,7 +1,7 @@
 (define (error message x)
   (newline)(display "Error: ")
   (display message)(display ": ") 
-  x) 
+  (display x)) 
 
 
 ;;;(error "23432424" 1)
@@ -568,23 +568,14 @@
               #f))))
   
   ; Процедура приведение первых двух аргументов
-  (define (types->type args-2 type-tags-2)
-    (let ((type1 (car type-tags-2))
-          (type2 (cadr type-tags-2))
-          (a1 (car args-2))
-          (a2 (cadr args-2)))
-      (let ((t1->t2 (get-coercion type1 type2))
-            (t2->t1 (get-coercion type2 type1)))   
-        
-        (cond (t1->t2
-               (cons (t1->t2 a1) 
-                     (cons a2 (cddr args-2))))
-              (t2->t1
-               (cons a1 
-                     (cons (t2->t1 a2) (cddr args-2))))
-              (else
-               (error "No method for these types"
-                      (list type-tags-2)))))))
+  (define (type1->type2 a1 a2)
+    (let ((type1 (type-tag a1))
+          (type2 (type-tag a2)))
+    (let ((t2->t1 (get-coercion type2 type1)))   
+      (cond (t2->t1
+             (t2->t1 a2))
+            (else
+             a2)))))
   
   
   (let ((type-tags (map type-tag args)))
@@ -593,11 +584,10 @@
         ;; Если все аргументы в одинаковы то ничего приводить ненадо
         (make-op op args)
         
-        ;; Иначе пробуем привести
-        
-        (types->type args type-tags)
-        
-        
+        ;; Иначе пробуем привести по первому элементу, ставим его в конец и вызываем снова
+        (apply-generic op
+                       (append (map (lambda (x) (type1->type2 (car args) x)) (cdr args)) 
+                               (list (car args))))
         )))
 
 
