@@ -626,6 +626,21 @@
  (make-scheme-number 5))
 
 
+(add
+ 
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-complex-from-real-imag 2 1)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-complex-from-real-imag 2 1)
+ )
+
+
 
 
 
