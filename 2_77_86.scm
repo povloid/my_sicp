@@ -1,3 +1,11 @@
+(define (error message x)
+  (newline)(display "Error: ")
+  (display message)(display ": ") 
+  x) 
+
+
+;;;(error "23432424" 1)
+
 ; Для того чтобы выполнить задание забежим вперед в 3 главу 
 ; и возьмем от туда построение таблици
 
@@ -543,8 +551,8 @@
   
   ; Новая обобщенная процедура, принимает на вход список аргументов
   (define (make-op op2 args)
-    (display "/>")  
-    (display args)
+    ;(display "/>")  
+    ;(display args)
     (let ((x (car args)) (y (cadr args)))
       (let ((opp (get op2 (map type-tag (list x y))))) 
         (if (null? (cddr args)) 
@@ -559,17 +567,38 @@
               (and a (is-all-type-tags-eq? (cdr args2))) 
               #f))))
   
+  ; Процедура приведение первых двух аргументов
+  (define (types->type args-2 type-tags-2)
+    (let ((type1 (car type-tags-2))
+          (type2 (cadr type-tags-2))
+          (a1 (car args-2))
+          (a2 (cadr args-2)))
+      (let ((t1->t2 (get-coercion type1 type2))
+            (t2->t1 (get-coercion type2 type1)))   
+        
+        (cond (t1->t2
+               (cons (t1->t2 a1) 
+                     (cons a2 (cddr args-2))))
+              (t2->t1
+               (cons a1 
+                     (cons (t2->t1 a2) (cddr args-2))))
+              (else
+               (error "No method for these types"
+                      (list type-tags-2)))))))
+  
+  
   (let ((type-tags (map type-tag args)))
-    
-    (display "*->")  
-    (display type-tags)
     ;; в)
     (if (is-all-type-tags-eq? type-tags) 
         ;; Если все аргументы в одинаковы то ничего приводить ненадо
-        
         (make-op op args)
         
-        (apply (get op type-tags) (map contents args)))))
+        ;; Иначе пробуем привести
+        
+        (types->type args type-tags)
+        
+        
+        )))
 
 
 
@@ -593,6 +622,18 @@
  (make-scheme-number 5)
  (make-scheme-number 5))
 
+
+(add
+ 
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-complex-from-real-imag 2 1)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5))
 
 
 
