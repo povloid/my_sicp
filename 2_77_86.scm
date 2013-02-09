@@ -452,6 +452,7 @@
   (define (apply-generic-old op x y) 
     ((get op (list (car x) (car y))) 
      (cdr x) (cdr y)))
+  
   (define (is-all-type-tags-eq? args)
     (if (null? args) #t
         (let ((a (eq? (car args) (cadr args))))
@@ -462,8 +463,10 @@
   (let ((type-tags (map type-tag args)))
     (display args)
     ;; в)
-    (if (is-all-type-tags-eq? type-tags) (apply (get op type-tags) (map contents args))
-        
+    (if (is-all-type-tags-eq? type-tags) 
+        ;; Если все аргументы в одинаковы то ничего приводить ненадо
+        (apply (get op type-tags) (map contents args))
+        ;; Иначе пробуем привести
         (let ((proc (get op type-tags)))
           (if proc 
               (apply proc (map contents args))
@@ -483,6 +486,7 @@
                                     (list op type-tags))))))
                   (error "No method for these types"
                          (list op type-tags))))))))
+
 
 
 
@@ -528,9 +532,59 @@
 
 ; в) Процедура доработана выше
 
+; Упражнение 2.82
+
+
+(newline)
+
+(define (apply-generic op args)
+  ;(display "*->")  
+  ;(display args)
+  
+  (define (apply-generic-old op x y) 
+    ((get op (list (car x) (car y))) 
+     (cdr x) (cdr y)))
+  
+  (define (is-all-type-tags-eq? args2)
+    (if (null? (cdr args2)) #t
+        (let ((a (eq? (car args2) (cadr args2))))
+          (if a 
+              (and a (is-all-type-tags-eq? (cdr args2))) 
+              #f))))
+  
+  (let ((type-tags (map type-tag args)))
+    
+    (display "*->")  
+    (display type-tags)
+    ;; в)
+    (if (is-all-type-tags-eq? type-tags) 
+        ;; Если все аргументы в одинаковы то ничего приводить ненадо
+        ((display ">>>") (display (map contents args))
+        (apply (get op type-tags) (map contents args)))
+        
+        (apply (get op type-tags) (map contents args)))))
 
 
 
+(define (add . args) 
+  (apply-generic 'add args))
+
+
+;(add
+; (make-complex-from-real-imag 2 1)
+; (make-complex-from-real-imag 2 1)
+; (make-complex-from-real-imag 2 1))
+
+(add
+ 
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5))
 
 
 
