@@ -139,8 +139,11 @@
 ;  пакет, который реализует арифметику рациональных чисел. 
 (define (install-rational-package)
   ;; внутренние процедуры
-  (define (numer x) (car x))
-  (define (denom x) (cdr x))
+  (define (numer x) 
+    (display x)
+    (car x))
+  (define (denom x) 
+    (cdr x))
   (define (make-rat n d)
     (let ((g (gcd n d)))
       (cons (/ n g) (/ d g))))
@@ -192,13 +195,24 @@
   
   (put 'make 'rational
        (lambda (n d) (tag (make-rat n d))))
-  'done)
+  
+  (put 'numer 'rational (lambda (x) (numer (cdr x))))
+  (put 'denom 'rational (lambda (x) (denom (cdr x))))
+  
+  'done-rat)
 
 (install-rational-package)
 
 (define (make-rational n d)
   ((get 'make 'rational) n d))
 
+(define (numer x) ((get 'numer 'rational) x))
+(define (denom x) ((get 'denom 'rational) x))
+
+
+
+(numer (make-rational 1 2))
+(denom (make-rational 1 2))
 
 (add (make-rational 1 2)
      (make-rational 5 10))
@@ -363,6 +377,9 @@
 
 (define (make-complex-from-mag-ang r a)
   ((get 'make-from-mag-ang 'complex) r a))
+
+;(define (real-part z) (car (cdr z)))
+;(define (imag-part z) (cdr (cdr z)))
 
 
 (add (make-complex-from-real-imag 2 1) 
@@ -571,11 +588,11 @@
   (define (type1->type2 a1 a2)
     (let ((type1 (type-tag a1))
           (type2 (type-tag a2)))
-    (let ((t2->t1 (get-coercion type2 type1)))   
-      (cond (t2->t1
-             (t2->t1 a2))
-            (else
-             a2)))))
+      (let ((t2->t1 (get-coercion type2 type1)))   
+        (cond (t2->t1
+               (t2->t1 a2))
+              (else
+               a2)))))
   
   
   (let ((type-tags (map type-tag args)))
@@ -640,6 +657,220 @@
  (make-complex-from-real-imag 2 1)
  )
 
+
+
+;; Упражнение 2.83
+
+; Пакет установки пакета для работы с обычными числами
+(define (install-real-package)
+  (define (tag x)
+    (list 'real x))
+  
+  (put 'add '(real real)
+       (lambda (x y) 
+         (tag (+ (car x) (car y)))))
+  (put 'sub '(real real)
+       (lambda (x y) (tag (- (car x) (car y)))))
+  (put 'mul '(real real)
+       (lambda (x y) (tag (* (car x) (car y)))))
+  (put 'div '(real real)
+       (lambda (x y) (tag (/ (car x) (car y)))))
+  
+  (put 'equ? '(real real)
+       (lambda (x y) (= (car x) (car y))))
+  
+  (put '=zero? '(real)
+       (lambda (x) (= (car x) 0)))
+  
+  
+  (define (exp x y) (apply-generic 'exp x y))
+  (put 'exp '(real real)
+       (lambda (x y) (tag (expt x y))))
+  
+  (put 'make 'real
+       (lambda (x) (tag x)))
+  'done2)
+
+(install-real-package)
+
+(define (make-real n)
+  ((get 'make 'real) n))
+
+
+
+(define (install-raise-ops)
+  (put 'raise 'scheme-number
+       (lambda (x) (make-rational x 1)))
+  (put 'raise 'rational
+       (lambda (x) (make-real (+ 0.0 (/ (numer x) (denom x))))))
+  (put 'raise 'real
+       (lambda (x) (make-complex-from-real-imag (cadr x) 0)))
+  'done)
+
+(install-raise-ops)
+
+
+
+
+(define (raise x)
+  ((get 'raise (type-tag x)) x))
+
+(raise (make-scheme-number 5))
+
+(raise (make-rational 1 2))
+
+
+(raise (raise (raise (make-scheme-number 5))))
+
+
+; Упражнение 2.84
+
+(define (apply-generic op args)
+  ;(display "*->")  
+  ;(display args)
+  
+  ; Новая обобщенная процедура, принимает на вход список аргументов
+  (define (make-op op2 args)
+    ;(display "/>")  
+    ;(display args)
+    (let ((x (car args)) (y (cadr args)))
+      (let ((opp (get op2 (map type-tag (list x y))))) 
+        (if (null? (cddr args)) 
+            (opp (contents x) (contents y))
+            (make-op op2 (cons (opp (contents x) (contents y)) (cddr args)))))))               
+  
+  ; Процедура проверяющая все ли типы в списке одинаковы
+  (define (is-all-type-tags-eq? args2)
+    (if (null? (cdr args2)) #t
+        (let ((a (eq? (car args2) (cadr args2))))
+          (if a 
+              (and a (is-all-type-tags-eq? (cdr args2))) 
+              #f))))
+  
+  ; Процедура приведение первых двух аргументов
+  (define (type1->type2 a1 a2)
+    (let ((type1 (type-tag a1))
+          (type2 (type-tag a2)))
+      (let ((t2->t1 (get-coercion type2 type1)))   
+        (cond (t2->t1
+               (t2->t1 a2))
+              (else
+               a2)))))
+  
+  ; Определяем в списке самый высокий тип в пирамиде
+  (define (top-type args-2)
+    (define (type-rang type)
+      (cond ((eq? type 'scheme-number) 1)
+            ((eq? type 'rational) 2)
+            ((eq? type 'real) 3)
+            ((eq? type 'complex) 4)
+            (else (error "Undifined type for" type))))
+    (define (rang-type rang)
+      (cond ((= rang 1) 'scheme-number)
+            ((= rang 2) 'rational)
+            ((= rang 3) 'real)
+            ((= rang 4) 'complex)
+            (else (error "Undifined type for" type))))
+    (define (top-type-it args-3 rang)
+      (if (null? args-3) rang
+          (let ((c-rang (type-rang (type-tag (car args-3)))))
+            (display c-rang)
+            (if (> c-rang rang)
+                (top-type-it (cdr args-3) c-rang)
+                (top-type-it (cdr args-3) rang)))))
+    (rang-type (top-type-it args-2 1)))
+  
+  
+  ;; Упражнение 2.85 добавляем упрощение результата
+  (define (drop x)
+  ;(display "*->")  
+  ;(display x)
+  (let ((type (type-tag x)))
+    (cond ((eq? type 'scheme-number)
+           x)
+          ((and (eq? type 'complex) (= (cdddr x) 0))
+                (drop (make-real (caddr x))))
+          ((and (eq? type 'real))
+                (drop (make-rational (cadr x) 1)))
+          ((and (eq? type 'rational) (= 0 (remainder (cadr x) (cddr x))))
+           ;(display ">>>")  (display (cadr x)) (display ":")  (display (cddr x))
+                (drop (make-scheme-number (/ (cadr x) (cddr x)))))
+          
+          (else x))))
+  
+  
+  (let ((type-tags (map type-tag args)))
+    ;; в)
+    (if (is-all-type-tags-eq? type-tags) 
+        ;; Если все аргументы в одинаковы то ничего приводить ненадо
+        ;;;;;(make-op op args)
+        ;; Упражнение 2.85 добавляем упрощение результата
+        (drop (make-op op args))
+        
+        ;; Старый вариант
+        ;; Иначе пробуем привести по первому элементу, ставим его в конец и вызываем снова
+        ;;(apply-generic op
+        ;;               (append (map (lambda (x) (type1->type2 (car args) x)) (cdr args)) 
+        ;;                       (list (car args))))
+        
+        ;; Теперь по башне
+        (let ((top-type-in-args (top-type args)))
+          (apply-generic op
+                         (map (lambda (x)
+                                (if (eq? (type-tag x) top-type-in-args)
+                                    x
+                                    (raise x))) args)))
+        
+        
+        
+        )))
+
+
+
+(add
+ 
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-rational 1 2)
+ (make-real 4.2)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-complex-from-real-imag 2 1)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ (make-scheme-number 5)
+ )
+
+(define (drop x)
+  ;(display "*->")  
+  ;(display x)
+  (let ((type (type-tag x)))
+    (cond ((eq? type 'scheme-number)
+           x)
+          ((and (eq? type 'complex) (= (cdddr x) 0))
+                (drop (make-real (caddr x))))
+          ((and (eq? type 'real))
+                (drop (make-rational (cadr x) 1)))
+          ((and (eq? type 'rational) (= 0 (remainder (cadr x) (cddr x))))
+           ;(display ">>>")  (display (cadr x)) (display ":")  (display (cddr x))
+                (drop (make-scheme-number (/ (cadr x) (cddr x)))))
+          
+          (else x))))
+
+
+
+(drop (make-scheme-number 5))
+
+(drop (make-complex-from-real-imag 2 0))
+
+(drop (make-rational 9 3))
+
+(add
+ (make-scheme-number 5)
+ (make-rational 9 3)
+ (make-complex-from-real-imag 2 0)
+ )
 
 
 
