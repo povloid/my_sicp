@@ -337,8 +337,127 @@
 (mul p1 p2)
 
 
+(pline)
 
 
+;; Цикл FOR
+(define (for-i-n i n state f)
+  (if (> i n) state
+      (for-i-n (+ i 1) n (f i state) f)))
+              
+(for-i-n 0 1000 1
+         (lambda (i state)
+                (display i)
+                (newline)
+                state))
+        
+(pline)
+
+;; Цикл while
+(define (while ftest state f)
+  (if (ftest state)
+      (while ftest (f state) f)
+      state))
+
+
+(while (lambda (a) (< a 1000))
+       0
+       (lambda (a)
+         (display a)
+         (newline)
+         (+ a 5))
+ )
+   
+; Цикл do while
+(define (do-while ftest state f)
+      (while ftest (f state) f))
+
+
+
+(do-while (lambda (a) (< a 2))
+       0
+       (lambda (a)
+         (display a)
+         (newline)
+         (+ a 5))
+ )
+   
+; FOR LIST
+
+(define (for-list iflist state f)
+  (define (for-iter blist elist state)
+    (if (null? elist) (cons blist state)
+        (let ((e (f (car elist) state)))
+        (for-iter (cons (car e) blist) (cdr elist) (cdr e)))))
+  (for-iter '() iflist state)) 
+  
+
+
+
+(for-list (list 0 1 2 3 4 5 5 6 7 8 9 10 5 10)
+          0
+          (lambda (e state)
+            (cons (* e 2) (+ state (if (= e 5) 1 0))))
+          )
+          
+
+;; Вытащить элемент по ключу и применить к нему функцию, 
+;; затем применить функцию к значению и записать на место значения 
+;; результат функции
+(define (app-f-for-key maplist key f)
+  (map (lambda (e)
+         (if (eq? (car e) key)
+             (cons key (f (cdr e)))
+             e))
+       maplist))
+
+
+;; Применить список функций по ключу
+(define (app-for-map maplist applist)
+  (if (null? applist)
+      maplist
+      (let ((fx (car applist)))
+        (app-for-map
+         (app-f-for-key maplist (car fx) (cdr fx))
+         (cdr applist)))))
+
+(pline)
+
+
+;; test
+(app-for-map
+ (list (cons 'orders-sum 0)
+       (cons 'max-order 0)
+       (cons 'min-order 0))
+ 
+ (list 
+  (cons 'orders-sum 
+        (lambda (val)
+          (+ val 1000))))
+ )
+(pline)
+
+
+
+
+
+(for-list terms2 ;; Список термов
+          ;; Теперь опишим состояние
+          (list (cons 'orders-sum 0)
+                (cons 'max-order 0)
+                (cons 'min-order 100000))
+          (lambda (e state)
+            (cons e 
+                  (app-for-map state 
+                               (list 
+                                (cons 'orders-sum (lambda (x)(+ x (order e))))
+                                (cons 'max-order (lambda (x)(if (< x (order e)) (order e) x)))
+                                (cons 'min-order (lambda (x)(if (> x (order e)) (order e) x)))
+                                )
+                               )
+                  )
+            )
+          )
 
 
 
